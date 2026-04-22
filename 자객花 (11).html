@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%232d1659' stroke='%238b5cf6' stroke-width='2.5'/%3E%3Cellipse cx='16' cy='15' rx='5' ry='9' fill='%23f0abfc' transform='rotate(-50 16 20)'/%3E%3Cellipse cx='16' cy='14' rx='5' ry='8' fill='%23db2777' transform='rotate(-18 16 20)'/%3E%3Cellipse cx='16' cy='14' rx='5' ry='8' fill='%23f0abfc' transform='rotate(18 16 20)'/%3E%3Cellipse cx='16' cy='15' rx='5' ry='9' fill='%23e879f9' transform='rotate(50 16 20)'/%3E%3Ccircle cx='16' cy='20' r='4' fill='white'/%3E%3Ccircle cx='16' cy='20' r='2' fill='%236d28d9'/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>자객:花 — 게임형 습관 트래킹</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: #080d1a; color: #f1f5f9; font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; min-height: 100vh; }
+#app { max-width: 420px; margin: 0 auto; padding-bottom: 80px; }
+.screen { padding: 0 16px 16px; display: none; }
+.screen.active { display: block; }
+.header { padding: 20px 0 14px; display: flex; justify-content: space-between; align-items: center; }
+.card { background: #111827; border: 1px solid #1e2d3d; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+.card-dark { background: #0d1524; }
+.btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; color: #fff; font-family: inherit; }
+.btn-purple { background: #8b5cf6; }
+.btn-green { background: #10b981; }
+.btn-ghost { background: none; border: none; color: #64748b; font-size: 13px; cursor: pointer; width: 100%; padding: 8px; font-family: inherit; }
+.num-btn { background: #1e2a3a; border: none; color: #f1f5f9; border-radius: 10px; padding: 12px 16px; font-size: 22px; cursor: pointer; font-weight: 700; }
+.num-input { background: #1e2a3a; border: 1px solid #2d3e52; border-radius: 12px; padding: 13px 16px; font-size: 24px; font-weight: 700; color: #fff; text-align: center; width: 100%; outline: none; -webkit-appearance: none; font-family: inherit; }
+.num-input::-webkit-inner-spin-button, .num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.num-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.tag-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 700; }
+.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #64748b; }
+.muted { color: #64748b; }
+.sub { color: #94a3b8; }
+.step-bar { display: flex; gap: 4px; margin-bottom: 18px; }
+.step-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.step-line { width: 100%; height: 4px; border-radius: 2px; background: #1e2a3a; }
+.step-line.active, .step-line.done { background: #8b5cf6; }
+.step-label { font-size: 10px; color: #64748b; }
+.step-label.active, .step-label.done { color: #8b5cf6; font-weight: 700; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.stat-box { flex: 1; background: #111827; border-radius: 12px; padding: 12px; }
+.result-boxes { display: flex; gap: 8px; margin-bottom: 10px; }
+.result-box { flex: 1; background: #1e2a3a; border-radius: 10px; padding: 12px; }
+.score-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid #2a1e05; }
+.pb-bg { background: #1e2a3a; border-radius: 4px; height: 6px; overflow: hidden; margin: 6px 0; }
+.pb-fill { height: 100%; border-radius: 4px; transition: width 0.6s; }
+textarea { background: #1e2a3a; border: 1px solid #2d3e52; border-radius: 10px; padding: 12px; font-size: 14px; color: #fff; width: 100%; height: 76px; resize: none; outline: none; line-height: 1.6; font-family: inherit; }
+nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: #0d1524; border-top: 1px solid #1e2d3d; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
+.nav-item { display: flex; flex-direction: column; align-items: center; padding: 4px 10px; cursor: pointer; color: #64748b; font-size: 10px; gap: 2px; }
+.nav-item.active { color: #8b5cf6; font-weight: 700; }
+.nav-icon { font-size: 20px; }
+.chart-wrap { height: 100px; display: flex; align-items: flex-end; gap: 4px; padding: 8px 0; }
+.chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.chart-bar { width: 100%; border-radius: 3px 3px 0 0; background: #8b5cf660; min-height: 4px; transition: height 0.4s; }
+.chart-bar.latest { background: #8b5cf6; }
+.chart-label { font-size: 8px; color: #64748b; }
+.lv-item { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 10px; margin-bottom: 4px; border: 1px solid transparent; }
+.lv-item.current { border-color: transparent; }
+.section-title { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+.comment-box { background: #1e2a3a; border-radius: 10px; padding: 10px 12px; }
+.total-score-box { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 12px 14px; border-radius: 10px; }
+.complete-card { text-align: center; }
+.weekly-summary { background: #2d1b69; border-radius: 10px; padding: 10px 12px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HOME -->
+  <div id="screen-home" class="screen active">
+    <div class="header">
+      <div>
+        <div class="eyebrow">게임형 습관 트래킹</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <svg viewBox="0 0 32 32" style="width:36px;height:36px;flex-shrink:0">
+            <circle cx="16" cy="16" r="15" fill="#2d1659" stroke="#8b5cf6" stroke-width="2.5"/>
+            <ellipse cx="16" cy="15" rx="5" ry="9" fill="#f0abfc" transform="rotate(-50 16 20)"/>
+            <ellipse cx="16" cy="14" rx="5" ry="8" fill="#db2777" transform="rotate(-18 16 20)"/>
+            <ellipse cx="16" cy="14" rx="5" ry="8" fill="#f0abfc" transform="rotate(18 16 20)"/>
+            <ellipse cx="16" cy="15" rx="5" ry="9" fill="#e879f9" transform="rotate(50 16 20)"/>
+            <circle cx="16" cy="20" r="4" fill="white"/>
+            <circle cx="16" cy="20" r="2" fill="#6d28d9"/>
+          </svg>
+          <div style="font-size:22px;font-weight:900;color:#f1f5f9">자객:花</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="eyebrow">🔥 연속</div>
+        <div id="home-streak" style="font-size:28px;font-weight:900;color:#f59e0b">0일</div>
+        <div onclick="resetToday()" style="font-size:10px;color:#ef4444;cursor:pointer;margin-top:2px;user-select:none">↺ 초기화</div>
+      </div>
+    </div>
+    <!-- name card (hidden - handled by goal row) -->
+    <div id="name-card-display" style="display:none"></div>
+    <div id="name-card-edit" style="display:none">
+      <input id="name-input" type="text" placeholder="이름을 입력하고 Enter" maxlength="12"
+        style="display:none"
+        onkeydown="if(event.key==='Enter')saveName()" onblur="saveName()" />
+    </div>
+    <!-- goal card row -->
+    <div id="home-goal-row" style="display:flex;gap:8px;margin-bottom:0"></div>
+    <!-- level card -->
+    <div id="home-level-card" class="card" style="display:flex;gap:12px;align-items:center;padding:14px 16px"></div>
+    <!-- today card -->
+    <div id="home-today-card" class="card" style="border:1px solid #7c3aed40;background:#131229"></div>
+    <!-- trend chart -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:700">📊 최근 흐름</span>
+        <span id="home-avg7" class="muted" style="font-size:11px"></span>
+      </div>
+      <div id="home-chart-tabs" style="display:flex;gap:0;background:#1e2a3a;border-radius:10px;padding:3px;margin-bottom:12px">
+        <div id="tab-pred" onclick="switchChartTab(0)" style="flex:1;text-align:center;padding:7px 4px;font-size:11px;font-weight:700;color:#fff;background:#06b6d4;border-radius:8px;cursor:pointer">예측점수</div>
+        <div id="tab-score" onclick="switchChartTab(1)" style="flex:1;text-align:center;padding:7px 4px;font-size:11px;font-weight:700;color:#64748b;border-radius:8px;cursor:pointer">기록점수</div>
+        <div id="tab-kg" onclick="switchChartTab(2)" style="flex:1;text-align:center;padding:7px 4px;font-size:11px;font-weight:700;color:#64748b;border-radius:8px;cursor:pointer">다이어트</div>
+      </div>
+      <div style="height:90px">
+        <svg id="home-chart-svg" viewBox="0 0 320 80" preserveAspectRatio="none" style="width:100%;height:100%"></svg>
+      </div>
+      <div id="home-chart-stats" style="display:flex;justify-content:space-between;margin-top:10px"></div>
+      <div id="home-trend" style="display:flex;gap:8px;margin-top:8px;align-items:center"></div>
+    </div>
+    <!-- weekly boss -->
+    <div class="card" style="background:#1a1030;border:1px solid #6d28d950;cursor:pointer" onclick="goWeekly()">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:10px;color:#a78bfa;font-weight:700;text-transform:uppercase;letter-spacing:1px">주간 보스전</div>
+          <div style="font-size:16px;font-weight:800;margin-top:2px">이번 주 패턴 발견 ⚔️</div>
+          <div style="font-size:12px;color:#7c3aed;margin-top:4px">완료 시 +10점</div>
+        </div>
+        <div style="font-size:36px">🏆</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECORD -->
+  <div id="screen-record" class="screen">
+    <div class="header">
+      <button class="btn-ghost" style="width:auto;padding:0;color:#8b5cf6;font-size:14px" onclick="showScreen('home')">← 홈</button>
+      <span style="font-size:17px;font-weight:800">오늘의 플레이</span>
+      <span></span>
+    </div>
+    <div class="step-bar" id="step-bar"></div>
+    <div id="record-content"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="screen-history" class="screen">
+    <div class="header">
+      <div>
+        <div class="eyebrow">기록 히스토리</div>
+        <div style="font-size:22px;font-weight:900;margin-top:2px">내 데이터 패턴 📈</div>
+      </div>
+    </div>
+    <div id="history-stats" class="stat-row"></div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">몸무게 추이</div>
+      <div id="history-chart" class="chart-wrap" style="height:120px"></div>
+    </div>
+    <div id="history-score-info"></div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- GOAL SETTING -->
+  <div id="screen-goal" class="screen">
+    <div class="header" style="display:flex;align-items:center;gap:10px">
+      <button onclick="showScreen('home')" style="background:none;border:none;color:#8b5cf6;font-size:14px;cursor:pointer;padding:0">← 홈</button>
+      <span style="font-size:17px;font-weight:800">목표 설정</span>
+    </div>
+    <div style="font-size:14px;color:#94a3b8;margin-bottom:16px">나의 목표를 입력해줘 🎯</div>
+
+    <div class="card">
+      <div style="font-size:10px;color:#10b981;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">목표 몸무게</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="num-btn" onclick="adjustGoalKg(-0.1)">－</button>
+        <input class="num-input" id="goal-kg-input" type="number" step="0.1" placeholder="60.0" style="color:#10b981">
+        <button class="num-btn" onclick="adjustGoalKg(0.1)">＋</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:10px;color:#10b981;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">목표 날짜</div>
+      <input type="date" id="goal-date-input" style="background:#1e2a3a;border:1px solid #2d3e52;border-radius:12px;padding:13px 16px;font-size:16px;font-weight:700;color:#f1f5f9;width:100%;outline:none;box-sizing:border-box;font-family:inherit">
+      <div id="goal-dday" style="font-size:11px;color:#64748b;margin-top:6px;text-align:right"></div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:10px;color:#10b981;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">그래프 기준</div>
+      <div id="goal-type-date" onclick="selectGoalType('date')" style="display:flex;align-items:center;gap:12px;background:#1e2a3a;border:2px solid #10b981;border-radius:12px;padding:12px 14px;cursor:pointer;margin-bottom:8px">
+        <div id="radio-date" style="width:18px;height:18px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:7px;height:7px;border-radius:50%;background:white"></div></div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#f1f5f9">날짜 진행도</div>
+          <div style="font-size:11px;color:#64748b;margin-top:1px">시작일부터 마감일까지 기간 기준</div>
+        </div>
+      </div>
+      <div id="goal-type-weight" onclick="selectGoalType('weight')" style="display:flex;align-items:center;gap:12px;background:#1e2a3a;border:1px solid #2d3e52;border-radius:12px;padding:12px 14px;cursor:pointer;opacity:0.7">
+        <div id="radio-weight" style="width:18px;height:18px;border-radius:50%;border:2px solid #475569;flex-shrink:0"></div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#f1f5f9">몸무게 달성도</div>
+          <div style="font-size:11px;color:#64748b;margin-top:1px">시작 몸무게 대비 목표 몸무게 기준</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 미리보기 -->
+    <div id="goal-preview" style="display:none" class="card" style="background:#0a1f13;border:1px solid #10b98135">
+      <div style="font-size:10px;color:#64748b;margin-bottom:8px;font-weight:700">미리보기</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:10px;color:#10b981;font-weight:700;text-transform:uppercase;letter-spacing:1px">목표</span>
+        <span id="preview-label" style="font-size:13px;font-weight:800;color:#f1f5f9"></span>
+      </div>
+      <div style="background:#1e2a3a;border-radius:4px;height:5px;overflow:hidden;margin-bottom:6px">
+        <div id="preview-bar" style="background:#10b981;height:100%;width:0%;border-radius:4px;transition:width 0.4s"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <span id="preview-dday" style="font-size:13px;font-weight:900;color:#10b981"></span>
+      </div>
+    </div>
+
+    <button class="btn btn-green" onclick="saveGoal()">저장하기 ✓</button>
+  </div>
+
+  <!-- WEEKLY -->
+  <div id="screen-weekly" class="screen">
+    <div class="header">
+      <div>
+        <div class="eyebrow" style="color:#a78bfa">주간 보스전</div>
+        <div style="font-size:22px;font-weight:900;margin-top:2px">이번 주 패턴 발견 ⚔️</div>
+      </div>
+    </div>
+    <div id="weekly-summary-card"></div>
+    <div class="card">
+      <div style="font-size:12px;color:#f59e0b;font-weight:700;margin-bottom:6px">✍️ 발견한 패턴 1개</div>
+      <div class="muted" style="font-size:11px;margin-bottom:8px">이번 주에 어떤 패턴을 발견했어?</div>
+      <textarea id="weekly-pattern" placeholder='"야식 다음 날은 무조건 증가한다"'></textarea>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;color:#10b981;font-weight:700;margin-bottom:6px">🎯 다음 주 전략 1줄</div>
+      <div class="muted" style="font-size:11px;margin-bottom:8px">다음 주에 실행할 전략은?</div>
+      <textarea id="weekly-strategy" placeholder='"저녁 7시 이후 금식 유지하기"'></textarea>
+    </div>
+    <button id="weekly-btn" class="btn" style="background:#2d3748" onclick="completeWeekly()">⚔️ 보스전 완료 → +10점 획득</button>
+    <div id="weekly-done-card" style="display:none" class="card complete-card" style="background:#0d2018;border:1px solid #10b98140">
+      <div style="font-size:40px;margin-bottom:8px">🏆</div>
+      <div style="font-size:17px;font-weight:800;color:#10b981">보스전 완료!</div>
+      <div style="font-size:28px;font-weight:900;color:#f59e0b;margin:6px 0">+10점 획득</div>
+    </div>
+  </div>
+
+  <!-- LEVEL -->
+  <div id="screen-level" class="screen">
+    <div class="header">
+      <div>
+        <div class="eyebrow">성장 시스템</div>
+        <div style="font-size:22px;font-weight:900;margin-top:2px">레벨 & 보상 🏆</div>
+      </div>
+    </div>
+    <div id="level-current-card" class="card"></div>
+    <div id="level-score-info"></div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px">레벨 로드맵 (12단계)</div>
+      <div id="level-roadmap" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px"></div>
+    </div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px">🎁 보상 시스템</div>
+    <div id="level-rewards"></div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-item active" id="nav-home" onclick="showScreen('home')"><span class="nav-icon">🏠</span><span>홈</span></div>
+  <div class="nav-item" id="nav-record" onclick="goRecord()"><span class="nav-icon">⚡</span><span>기록</span></div>
+  <div class="nav-item" id="nav-history" onclick="showScreen('history')"><span class="nav-icon">📊</span><span>히스토리</span></div>
+  <div class="nav-item" id="nav-weekly" onclick="goWeekly()"><span class="nav-icon">⚔️</span><span>주간</span></div>
+  <div class="nav-item" id="nav-level" onclick="showScreen('level')"><span class="nav-icon">🏆</span><span>레벨</span></div>
+</nav>
+
+<script>
+const LEVELS = [
+  { level:1,  name:'입문자',      min:0,    max:20,   desc:'기록을 시작한 사람',                  emoji:'🌱', color:'#10b981' },
+  { level:2,  name:'관찰자',      min:21,   max:50,   desc:'숫자를 들여다보기 시작한 사람',        emoji:'👀', color:'#06b6d4' },
+  { level:3,  name:'추적자',      min:51,   max:90,   desc:'흐름을 따라가기 시작한 사람',          emoji:'🔎', color:'#3b82f6' },
+  { level:4,  name:'탐구자',      min:91,   max:140,  desc:'원인이 궁금해지기 시작한 사람',        emoji:'🧭', color:'#6366f1' },
+  { level:5,  name:'패턴 인식자', min:141,  max:210,  desc:'반복되는 패턴을 발견한 사람',          emoji:'🔍', color:'#8b5cf6' },
+  { level:6,  name:'분석가',      min:211,  max:300,  desc:'데이터로 원인을 읽는 사람',            emoji:'📊', color:'#a855f7' },
+  { level:7,  name:'해석가',      min:301,  max:410,  desc:'패턴에 의미를 부여하는 사람',          emoji:'🧠', color:'#d946ef' },
+  { level:8,  name:'전략가',      min:411,  max:540,  desc:'데이터를 행동으로 바꾸는 사람',        emoji:'⚡', color:'#ec4899' },
+  { level:9,  name:'설계자',      min:541,  max:700,  desc:'전략을 나만의 루틴으로 만든 사람',     emoji:'🏗️', color:'#f43f5e' },
+  { level:10, name:'고수',        min:701,  max:900,  desc:'몸의 언어를 읽을 줄 아는 사람',       emoji:'🎯', color:'#f97316' },
+  { level:11, name:'달인',        min:901,  max:1150, desc:'자연스럽게 통제하는 사람',            emoji:'🔥', color:'#eab308' },
+  { level:12, name:'마스터',      min:1151, max:Infinity, desc:'완전한 자기 이해에 도달한 사람',   emoji:'👑', color:'#f59e0b' },
+];
+const REWARDS = [
+  { title:'좋아하는 음식 1회', score:50, emoji:'🍜' },
+  { title:'갖고 싶던 작은 쇼핑', score:150, emoji:'🛍️' },
+  { title:'나를 위한 큰 보상', score:300, emoji:'🎁' },
+  { title:'특별한 경험 (여행/호캉스)', score:500, emoji:'✈️' },
+];
+
+// ── localStorage 저장/불러오기 ──
+function saveData() {
+  try {
+    localStorage.setItem('자객_entries', JSON.stringify(entries));
+    localStorage.setItem('자객_userName', userName);
+    localStorage.setItem('자객_dayState', dayState);
+    localStorage.setItem('자객_todayResult', JSON.stringify(todayResult));
+    localStorage.setItem('자객_weeklyDone', weeklyDone ? '1' : '0');
+    localStorage.setItem('자객_predictVal', predictVal);
+    localStorage.setItem('자객_actualVal', actualVal);
+    localStorage.setItem('자객_lastDate', new Date().toDateString());
+    localStorage.setItem('자객_goalKg', goalKg);
+    localStorage.setItem('자객_goalDate', goalDate);
+    localStorage.setItem('자객_goalGraphType', goalGraphType);
+    localStorage.setItem('자객_startKg', startKg);
+  } catch(e) {}
+}
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem('자객_entries');
+    if(saved) entries = JSON.parse(saved);
+    userName = localStorage.getItem('자객_userName') || '';
+    weeklyDone = localStorage.getItem('자객_weeklyDone') === '1';
+    goalKg = localStorage.getItem('자객_goalKg') || '';
+    goalDate = localStorage.getItem('자객_goalDate') || '';
+    goalGraphType = localStorage.getItem('자객_goalGraphType') || 'date';
+    startKg = localStorage.getItem('자객_startKg') || '';
+    predictVal = localStorage.getItem('자객_predictVal') || '';
+    actualVal  = localStorage.getItem('자객_actualVal')  || '';
+    const lastDate = localStorage.getItem('자객_lastDate');
+    const todayStr = new Date().toDateString();
+    if(lastDate !== todayStr) {
+      dayState = 'INIT'; todayResult = null; predictVal = ''; actualVal = ''; weeklyDone = false;
+    } else {
+      dayState = localStorage.getItem('자객_dayState') || 'INIT';
+      const tr = localStorage.getItem('자객_todayResult');
+      todayResult = tr && tr !== 'null' ? JSON.parse(tr) : null;
+    }
+  } catch(e) {}
+}
+
+let entries = [];
+let userName = '';
+let dayState = 'INIT';
+let todayResult = null;
+let weeklyDone = false;
+let goalKg = '';
+let goalDate = '';
+let goalGraphType = 'date'; // 'date' or 'weight'
+let startKg = '';
+
+function getCountdown() {
+  const now = new Date();
+  const end = new Date();
+  end.setHours(23, 59, 0, 0);
+  const diff = end - now;
+  if(diff <= 0) return { text:'00:00:00', urgent:true, warning:false };
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  const text = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return { text, urgent: h < 1, warning: h < 3 };
+}
+
+function saveName() {
+  const input = document.getElementById('name-input');
+  if(!input) return;
+  const v = input.value.trim();
+  if(!v) return;
+  userName = v;
+  saveData();
+  // hide edit, show display
+  document.getElementById('name-card-edit').style.display = 'none';
+  const display = document.getElementById('name-card-display');
+  display.style.display = 'flex';
+  display.innerHTML = `
+    <div style="width:40px;height:40px;border-radius:50%;background:#7c3aed25;border:1px solid #7c3aed50;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👤</div>
+    <div style="flex:1">
+      <div style="font-size:10px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">플레이어</div>
+      <div style="font-size:18px;font-weight:900;color:#8b5cf6">${userName}님 👋</div>
+    </div>
+    <div style="font-size:10px;color:#64748b;font-style:italic">탭해서 수정</div>`;
+}
+function toggleNameEdit() {
+  const newName = prompt('이름을 입력해줘', userName || '');
+  if(newName !== null && newName.trim()) {
+    userName = newName.trim();
+    saveData();
+    renderGoalCard();
+  }
+}
+function updateName(v) { userName = v.trim(); }
+let recordStep = 'predict';
+let predictVal = '';
+let actualVal = '';
+let currentScreen = 'home';
+
+function getLvl(s) { return LEVELS.find(l => s >= l.min && (l.level===12 || s <= l.max)) || LEVELS[0]; }
+function totalScore() { return entries.reduce((s,e)=>s+e.total,0) + (weeklyDone?10:0); }
+function avg7() { const sl=entries.slice(-7); if(!sl.length) return '-'; return (sl.reduce((s,e)=>s+e.actual,0)/sl.length).toFixed(1); }
+function streak() { return entries.length ? (entries[entries.length-1]?.streak||0) : 0; }
+function trendColor(t) { return t==='하락'?'#10b981':t==='상승'?'#ef4444':'#f59e0b'; }
+function getComment(d) {
+  if(d<-0.5) return '대박! 엄청난 하락세야 🔥';
+  if(d<0) return '좋아! 하락 추세 유지 중 😊';
+  if(d===0) return '유지 중이야. 패턴 확인해봐';
+  if(d<=0.3) return '조금 올랐지만 최근 평균은 안정적';
+  return '최근 상승 흐름, 식단 점검 추천 💡';
+}
+function calcPred(err) {
+  if(err===null) return 0;
+  if(err<=0.1) return 4;
+  if(err<=0.3) return 3;
+  if(err<=0.5) return 2;
+  if(err<=1.0) return 1;
+  return 0;
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navEl = document.getElementById('nav-'+name);
+  if(navEl) navEl.classList.add('active');
+  currentScreen = name;
+  if(name==='home') renderHome();
+  if(name==='history') renderHistory();
+  if(name==='level') renderLevel();
+  if(name==='weekly') renderWeekly();
+}
+
+function goRecord() {
+  recordStep = dayState==='COMPLETED'?'score':dayState==='PREDICTED'?'record':'predict';
+  showScreen('record');
+  renderRecord();
+}
+function goWeekly() { showScreen('weekly'); }
+
+// ─── RENDER HOME ───
+function renderHome() {
+  const sc = totalScore();
+  const lvl = getLvl(sc);
+  const nextLvl = LEVELS.find(l=>l.level===lvl.level+1);
+  const progress = nextLvl ? Math.min(100,((sc-lvl.min)/(lvl.max-lvl.min))*100) : 100;
+  const last = entries[entries.length-1];
+
+  document.getElementById('home-streak').textContent = streak()+'일';
+  document.getElementById('home-avg7').textContent = '7일 평균 '+avg7()+'kg';
+
+  // level card
+  document.getElementById('home-level-card').innerHTML = `
+    <div style="width:46px;height:46px;border-radius:12px;background:${lvl.color}22;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${lvl.emoji}</div>
+    <div style="flex:1">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:700;color:${lvl.color}">Lv.${lvl.level} ${lvl.name}</span>
+        <span style="font-size:13px;font-weight:700">${sc}점</span>
+      </div>
+      <div class="pb-bg"><div class="pb-fill" style="width:${progress}%;background:${lvl.color}"></div></div>
+      <div style="font-size:10px;color:#64748b;margin-top:3px">${nextLvl?`Lv.${nextLvl.level} ${nextLvl.name}까지 ${nextLvl.min-sc}점`:'👑 최고 레벨 달성!'}</div>
+    </div>`;
+  document.getElementById('home-level-card').style.border = `1px solid ${lvl.color}35`;
+
+  // today card
+  const tc = document.getElementById('home-today-card');
+  tc.style.border = dayState==='COMPLETED'?'1px solid #10b98140':'1px solid #7c3aed40';
+  tc.style.background = dayState==='COMPLETED'?'#0d1f17':'#131229';
+  const stateText = dayState==='INIT'?'아직 시작 전이야 👀':dayState==='PREDICTED'?'예측 완료 ✓ 기록 대기 중':'오늘 플레이 완료! 🎉';
+  const badgeColor = dayState==='COMPLETED'?'#10b981':'#8b5cf6';
+  const btnText = dayState==='INIT'?'🎮 오늘 플레이 시작':dayState==='PREDICTED'?'⚖️ 기록하기':'✅ 결과 보기';
+  const btnColor = dayState==='COMPLETED'?'#10b981':'#8b5cf6';
+  const predVal = (dayState!=='INIT'&&predictVal)?predictVal+'kg':'미입력';
+  const recVal = (dayState==='COMPLETED'&&todayResult)?todayResult.actual+'kg':'미입력';
+  const scVal = (dayState==='COMPLETED'&&todayResult)?'+'+todayResult.total+'점':'-';
+  const cd = getCountdown();
+  const cdColor = cd.urgent?'#ef4444':cd.warning?'#f59e0b':'#10b981';
+  tc.innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px;align-items:flex-start">
+      <div>
+        <div class="eyebrow">오늘의 플레이</div>
+        <div style="font-size:16px;font-weight:800;margin-top:3px">${stateText}</div>
+      </div>
+      <span class="badge" style="background:${badgeColor}20;color:${badgeColor}">${dayState==='INIT'?'시작 전':dayState==='PREDICTED'?'예측완료':'완료 ✓'}</span>
+    </div>
+    ${dayState!=='COMPLETED'?`<div style="display:flex;align-items:center;gap:6px;background:#1e2a3a;border-radius:8px;padding:7px 12px;margin-bottom:10px">
+      <span style="font-size:12px">⏰</span>
+      <span style="font-size:11px;color:#64748b">마감까지</span>
+      <span style="font-size:15px;font-weight:900;color:${cdColor};font-family:monospace;letter-spacing:1px">${cd.text}</span>
+      <span style="font-size:11px;color:#64748b">남음</span>
+    </div>`:''}
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      ${[['예측',predVal,dayState!=='INIT'&&!!predictVal,'#a78bfa'],['기록',recVal,dayState==='COMPLETED','#10b981'],['점수',scVal,dayState==='COMPLETED','#f59e0b']].map(([l,v,a,c])=>`
+        <div style="flex:1;background:#1e2a3a;border-radius:10px;padding:10px 8px">
+          <div style="font-size:9px;color:#64748b">${l}</div>
+          <div style="font-size:13px;font-weight:700;color:${a?c:'#64748b'};margin-top:2px">${v}</div>
+        </div>`).join('')}
+    </div>
+    <button class="btn" style="background:${btnColor}" onclick="goRecord()">${btnText}</button>`;
+
+  renderGoalCard();
+
+  // tabbed chart
+  window._chartEntries = entries;
+  if(typeof window._chartTab === 'undefined') window._chartTab = 0;
+  renderHomeChart();
+
+  // trend
+  if(last) {
+    document.getElementById('home-trend').innerHTML = `
+      <span class="badge" style="background:${trendColor(last.trend)}20;color:${trendColor(last.trend)}">${last.trend} ${last.trend==='하락'?'↓':last.trend==='상승'?'↑':'→'}</span>
+      <span style="font-size:12px;color:#94a3b8">${last.comment}</span>`;
+  }
+}
+
+// ─── RENDER RECORD ───
+function renderRecord() {
+  const steps = ['예측','기록','결과','점수'];
+  const stepIdx = {predict:1, record:2, result:3, score:4, done:4}[recordStep] || 1;
+  document.getElementById('step-bar').innerHTML = steps.map((s,i)=>{
+    const idx=i+1, active=stepIdx===idx, done=stepIdx>idx;
+    return `<div class="step-item">
+      <div class="step-line${active||done?' active':''}"></div>
+      <div class="step-label${active||done?' active':''}">${s}</div>
+    </div>`;
+  }).join('');
+
+  const last = entries[entries.length-2] || null; // before today's entry
+  const content = document.getElementById('record-content');
+
+  if(recordStep==='predict') {
+    const ref = entries[entries.length-1];
+    content.innerHTML = `
+      <div class="card">
+        <div style="font-size:10px;color:#8b5cf6;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">STEP 1 · 예측 (게임 시작)</div>
+        <div style="font-size:18px;font-weight:800;margin-bottom:4px">오늘 몸무게는 몇 kg일 것 같아?</div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:14px">어제: ${ref?.actual||'-'}kg &nbsp; <span style="color:#64748b">(±0.1→<span style="color:#f59e0b">+4점</span> · ±0.3→<span style="color:#f59e0b">+3점</span> · ±0.5→<span style="color:#f59e0b">+2점</span> · ±1.0→<span style="color:#f59e0b">+1점</span>)</span></div>
+        <div class="num-row">
+          <button class="num-btn" onclick="adjustInput('predict',-0.1)">－</button>
+          <input class="num-input" id="predict-input" type="number" step="0.1" value="${predictVal||ref?.actual||'62.5'}" placeholder="${ref?.actual||'62.5'}">
+          <button class="num-btn" onclick="adjustInput('predict',0.1)">＋</button>
+        </div>
+        <button class="btn btn-purple" onclick="submitPredict()">예측 입력 →</button>
+
+      </div>
+      <div class="card card-dark">
+        <div style="font-size:11px;color:#64748b;margin-bottom:5px">💡 예측이 중요한 이유</div>
+        <div style="font-size:12px;color:#94a3b8;line-height:1.7">예측 → 실제 비교를 반복할수록 내 몸 패턴을 정확히 이해하게 돼요.</div>
+      </div>`;
+
+  } else if(recordStep==='record') {
+    const ref = entries[entries.length-1];
+    content.innerHTML = `
+      <div class="card">
+        <div style="font-size:10px;color:#8b5cf6;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">STEP 2 · 기록 (실제 입력)</div>
+        <div style="font-size:18px;font-weight:800;margin-bottom:4px">실제 몸무게 기록</div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:14px">${predictVal?`예측 ${predictVal}kg`:'예측 없음'} · 기록만 해도 <span style="color:#10b981">+5점</span></div>
+
+
+
+        <div class="num-row">
+          <button class="num-btn" onclick="adjustInput('actual',-0.1)">－</button>
+          <input class="num-input" id="actual-input" type="number" step="0.1" value="${actualVal||ref?.actual||'62.5'}" placeholder="${ref?.actual||'62.5'}">
+          <button class="num-btn" onclick="adjustInput('actual',0.1)">＋</button>
+        </div>
+        <button class="btn btn-purple" onclick="submitRecord()">⚡ 기록 완료 → 결과 확인</button>
+      </div>`;
+
+  } else if(recordStep==='result' && todayResult) {
+    const r = todayResult;
+    const dc = r.diff<0?'#10b981':r.diff>0?'#ef4444':'#f59e0b';
+    const a7 = avg7();
+    const prevEntries = entries.slice(-8, -1);
+    const prevAvg = prevEntries.length ? (prevEntries.reduce((s,e)=>s+e.actual,0)/prevEntries.length).toFixed(1) : '-';
+    const recentTrend = entries.length >= 3
+      ? (() => {
+          const sl = entries.slice(-3);
+          const d1 = sl[1].actual - sl[0].actual;
+          const d2 = sl[2].actual - sl[1].actual;
+          if(d1 < 0 && d2 < 0) return '3일 연속 하락 📉';
+          if(d1 > 0 && d2 > 0) return '3일 연속 상승 📈';
+          return '등락 반복 중';
+        })()
+      : '데이터 쌓이는 중';
+
+    content.innerHTML = `
+      <div class="card" style="border:1px solid #10b98130">
+        <div style="font-size:10px;color:#10b981;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">STEP 3 · 결과 확인 (즉시 해석)</div>
+
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <div class="result-box" style="flex:1.2">
+            <div style="font-size:9px;color:#64748b;margin-bottom:4px">어제 대비</div>
+            <div style="font-size:26px;font-weight:900;color:${dc}">${r.diff>0?'+':''}${r.diff}kg</div>
+            <div style="font-size:11px;color:${dc};margin-top:2px">${r.diff<0?'↓ 감소':r.diff>0?'↑ 증가':'→ 유지'}</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <div class="result-box">
+              <div style="font-size:9px;color:#64748b">오늘 기록</div>
+              <div style="font-size:18px;font-weight:900;margin-top:2px">${r.actual}kg</div>
+            </div>
+            <div class="result-box">
+              <div style="font-size:9px;color:#64748b">예측값</div>
+              <div style="font-size:18px;font-weight:900;color:#a78bfa;margin-top:2px">${r.predicted!==null?r.predicted+'kg':'없음'}</div>
+            </div>
+          </div>
+        </div>
+
+        ${r.predError !== null ? `
+        <div style="background:#1e2a3a;border-radius:12px;padding:16px;margin-bottom:10px;text-align:center;border:1px solid #8b5cf650">
+          <div style="font-size:11px;color:#64748b;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase">예측 오차</div>
+          <div style="font-size:48px;font-weight:900;line-height:1;color:#8b5cf6;margin-bottom:8px">${r.predError}kg</div>
+          <div style="display:inline-block;padding:6px 18px;border-radius:100px;font-size:15px;font-weight:800;background:${r.predError<=0.1?'#f59e0b25':r.predError<=0.3?'#ef444425':r.predError<=0.5?'#10b98125':r.predError<=1.0?'#3b82f625':'#8b5cf625'};color:${r.predError<=0.1?'#f59e0b':r.predError<=0.3?'#ef4444':r.predError<=0.5?'#10b981':r.predError<=1.0?'#3b82f6':'#8b5cf6'}">
+            ${r.predError<=0.1?'🔥 완벽 +4점':r.predError<=0.3?'✨ 우수 +3점':r.predError<=0.5?'👍 양호 +2점':r.predError<=1.0?'🙂 근접 +1점':'😅 빗나감 0점'}
+          </div>
+        </div>` : ''}
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <div class="result-box" style="text-align:center">
+            <div style="font-size:9px;color:#64748b;margin-bottom:3px">7일 평균</div>
+            <div style="font-size:14px;font-weight:800">${a7}kg</div>
+          </div>
+          <div class="result-box" style="text-align:center">
+            <div style="font-size:9px;color:#64748b;margin-bottom:3px">최근 3일</div>
+            <div style="font-size:11px;font-weight:700;color:#94a3b8">${recentTrend}</div>
+          </div>
+          <div class="result-box" style="text-align:center">
+            <div style="font-size:9px;color:#64748b;margin-bottom:3px">직전 평균</div>
+            <div style="font-size:14px;font-weight:800">${prevAvg}kg</div>
+          </div>
+        </div>
+
+        <div class="comment-box">
+          <div style="font-size:10px;color:#64748b;margin-bottom:3px">💬 코멘트</div>
+          <div style="font-size:14px;font-weight:600">${r.comment}</div>
+        </div>
+      </div>
+      <button class="btn btn-purple" onclick="goScoreStep()" style="margin-top:4px">점수 확인하기 →</button>`;
+
+  } else if(recordStep==='score' && todayResult) {
+    const r = todayResult;
+    const sc = totalScore();
+    const lvl = getLvl(sc);
+    content.innerHTML = `
+      <div class="card" style="border:1px solid #f59e0b30;background:#1a1505">
+        <div style="font-size:10px;color:#f59e0b;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">STEP 4 · 점수 획득</div>
+
+        <div class="score-row">
+          <span style="font-size:13px;color:#d4a017">
+            🎯 예측 정확도
+            ${r.predError!==null
+              ? `<span style="display:block;font-size:11px;color:#94a3b8;margin-top:3px">${r.predicted!==null?r.predicted+'kg':'-'} → ${r.actual}kg = 오차 ${r.predError}kg</span>`
+              : `<span style="display:block;font-size:11px;color:#64748b;margin-top:3px">예측 없음</span>`}
+          </span>
+          <span style="font-size:18px;font-weight:900;color:${r.predScore>0?'#10b981':'#64748b'};flex-shrink:0;margin-left:8px">${r.predScore>0?'+':''}${r.predScore}점</span>
+        </div>
+        <div class="score-row">
+          <span style="font-size:13px;color:#d4a017">
+            ⚖️ 몸무게 변화
+            <span style="display:block;font-size:11px;color:#94a3b8;margin-top:3px">${r.diff<0?'감소 → +6점':r.diff===0?'유지 → +2점':'증가 → -4점'}</span>
+          </span>
+          <span style="font-size:18px;font-weight:900;color:${r.changeScore>0?'#10b981':r.changeScore<0?'#ef4444':'#f59e0b'}">${r.changeScore>0?'+':''}${r.changeScore}점</span>
+        </div>
+        <div class="score-row" style="border-bottom:none">
+          <span style="font-size:13px;color:#d4a017">
+            ✅ 기록 완료 보너스
+            <span style="display:block;font-size:11px;color:#94a3b8;margin-top:3px">기록하면 무조건 +5점</span>
+          </span>
+          <span style="font-size:18px;font-weight:900;color:#10b981">+${r.logScore}점</span>
+        </div>
+
+        <div style="margin-top:14px;background:#f59e0b15;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:15px;font-weight:800;color:#f59e0b">🏆 오늘 획득</span>
+          <span style="font-size:34px;font-weight:900;color:#f59e0b">${r.total>0?'+':''}${r.total}점</span>
+        </div>
+      </div>
+
+      <div class="card" style="border:1px solid #10b98140;background:#0d1f17;text-align:center">
+        <div style="font-size:40px;margin-bottom:8px">🎉</div>
+        <div style="font-size:18px;font-weight:800;color:#10b981;margin-bottom:4px">오늘 플레이 완료!</div>
+        <div style="font-size:13px;color:#94a3b8;margin-bottom:14px">누적 ${sc}점 · Lv.${lvl.level} ${lvl.name} · 연속 ${streak()}일</div>
+        <button class="btn btn-green" onclick="showScreen('home')">홈으로 →</button>
+      </div>`;
+
+  } else if(recordStep==='predicted_done') {
+    content.innerHTML = `
+      <div class="card" style="text-align:center;border:1px solid #8b5cf640;background:#131229">
+        <div style="font-size:40px;margin-bottom:10px">🎯</div>
+        <div style="font-size:18px;font-weight:800;color:#a78bfa;margin-bottom:6px">오늘 예측 완료!</div>
+        <div style="font-size:13px;color:#94a3b8;margin-bottom:6px">예측값: <span style="color:#a78bfa;font-weight:700">${predictVal}kg</span></div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:16px">오늘 11:59 전에 실제 몸무게를 기록해줘</div>
+        <button class="btn btn-purple" onclick="goToRecord()" style="margin-bottom:8px">⚖️ 바로 기록하기 →</button>
+        <button class="btn" style="background:#1e2a3a;color:#94a3b8" onclick="showScreen('home')">홈으로</button>
+      </div>`;
+  } else if(recordStep==='done') {
+    content.innerHTML = `
+      <div class="card" style="text-align:center">
+        <div style="font-size:34px;margin-bottom:8px">✅</div>
+        <div style="font-size:16px;font-weight:800;color:#10b981">오늘 이미 완료!</div>
+        <div style="font-size:13px;color:#94a3b8;margin:8px 0 14px">내일 다시 만나요 👋</div>
+        <button class="btn btn-purple" onclick="showScreen('home')">홈으로</button>
+      </div>`;
+  }
+}
+
+function adjustInput(type, delta) {
+  const id = type==='predict'?'predict-input':'actual-input';
+  const el = document.getElementById(id);
+  if(!el) return;
+  const v = parseFloat(el.value||entries[entries.length-1]?.actual||62);
+  el.value = (v+delta).toFixed(1);
+  if(type==='predict') predictVal=el.value;
+  else actualVal=el.value;
+}
+
+function goToRecord() {
+  recordStep = 'record';
+  renderRecord();
+}
+
+function submitPredict() {
+  const el = document.getElementById('predict-input');
+  if(!el||!el.value) return;
+  predictVal = el.value;
+  dayState = 'PREDICTED';
+  saveData();
+  recordStep = 'predicted_done';
+  renderRecord();
+}
+function skipPredict() {
+  predictVal = '';
+  dayState = 'PREDICTED';
+  saveData();
+  recordStep = 'record';
+  renderRecord();
+}
+function submitRecord() {
+  const el = document.getElementById('actual-input');
+  if(!el||!el.value) return;
+  actualVal = el.value;
+  const actual = parseFloat(actualVal);
+  const predicted = predictVal ? parseFloat(predictVal) : null;
+  const last = entries[entries.length-1];
+  const diff = parseFloat((actual-(last?.actual||actual)).toFixed(1));
+  const predError = predicted!==null ? parseFloat(Math.abs(actual-predicted).toFixed(1)) : null;
+  const predScore = calcPred(predError);
+  const changeScore = diff<0?6:diff===0?2:-4;
+  const logScore = 5;
+  const total = predScore+changeScore+logScore;
+  const comment = getComment(diff);
+  todayResult = { predicted, actual, diff, predError, predScore, changeScore, logScore, total, comment };
+  recordStep = 'result';
+  renderRecord();
+}
+
+function goScoreStep() {
+  if(!todayResult) return;
+  const r = todayResult;
+  dayState = 'COMPLETED';
+  const last2 = entries[entries.length-1];
+  entries.push({ date:'오늘', predicted:r.predicted, actual:r.actual, diff:r.diff, trend:r.diff<0?'하락':r.diff>0?'상승':'유지', predScore:r.predScore, changeScore:r.changeScore, logScore:r.logScore, total:r.total, comment:r.comment, streak:(last2?.streak||0)+1 });
+  saveData();
+  recordStep = 'score';
+  renderRecord();
+  renderHome();
+}
+
+// ─── RENDER HISTORY ───
+function renderHistory() {
+  const sl = entries.slice(-7);
+  const mn7 = sl.length ? Math.min(...sl.map(e=>e.actual)).toFixed(1) : '-';
+  const a7 = avg7();
+  const stk = streak();
+
+  document.getElementById('history-stats').innerHTML = [
+    ['최저', mn7+'kg', '#10b981'],
+    ['7일 평균', a7+'kg', '#8b5cf6'],
+    ['연속', stk+'일', '#f59e0b'],
+  ].map(([l,v,c])=>`<div class="stat-box" style="border:1px solid ${c}25"><div style="font-size:9px;color:#64748b">${l}</div><div style="font-size:20px;font-weight:900;color:${c};margin-top:2px">${v}</div></div>`).join('');
+
+  if(entries.length === 0) {
+    document.getElementById('history-chart').innerHTML = '<div style="width:100%;display:flex;align-items:center;justify-content:center;color:#2d3e52;font-size:13px;height:80px">기록이 없어요</div>';
+  } else {
+  const vals = entries.map(e=>e.actual);
+  const mn=Math.min(...vals), mx=Math.max(...vals), rng=mx-mn||1;
+  document.getElementById('history-chart').innerHTML = entries.map((e,i)=>`
+    <div class="chart-bar-wrap">
+      <div class="chart-bar${i===entries.length-1?' latest':''}" style="height:${Math.max(10,((e.actual-mn)/rng)*100+10)}px"></div>
+      <div class="chart-label">${e.date}</div>
+    </div>`).join('');
+  }
+
+  document.getElementById('history-score-info').innerHTML = `
+    <div style="margin-bottom:12px">
+      <div onclick="toggleScoreInfo()" style="display:flex;justify-content:space-between;align-items:center;background:#111827;border:1px solid #1e2d3d;border-radius:12px;padding:13px 16px;cursor:pointer">
+        <span style="font-size:13px;font-weight:700">🎯 점수 시스템</span>
+        <span id="score-info-arrow" style="font-size:18px;color:#64748b;transition:transform 0.2s">∨</span>
+      </div>
+      <div id="score-info-body" style="display:none">${renderScoreInfo()}</div>
+    </div>`;
+
+  document.getElementById('history-list').innerHTML = [...entries].reverse().map(e=>`
+    <div class="card" style="padding:12px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#94a3b8">${e.date}</div>
+          <div style="font-size:22px;font-weight:900;margin-top:2px">${e.actual}kg</div>
+          <div style="font-size:11px;color:#64748b;margin-top:1px">예측: ${e.predicted?e.predicted+'kg':'없음'} · ${e.diff>0?'+':''}${e.diff}kg</div>
+        </div>
+        <div style="text-align:right">
+          <span class="badge" style="background:${trendColor(e.trend)}20;color:${trendColor(e.trend)}">${e.trend} ${e.trend==='하락'?'↓':e.trend==='상승'?'↑':'→'}</span>
+          <div style="font-size:20px;font-weight:900;color:${e.total>0?'#10b981':e.total<0?'#ef4444':'#64748b'};margin-top:4px">${e.total>0?'+':''}${e.total}점</div>
+          <div style="font-size:10px;color:#64748b">🔥 ${e.streak}일</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:8px;padding:7px 10px;background:#1e2a3a;border-radius:8px">${e.comment}</div>
+    </div>`).join('');
+}
+
+function renderScoreInfo() {
+  return `<div class="card" style="background:#0f0a00;border:1px solid #f59e0b25">
+    <div style="font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">점수 시스템</div>
+    <div style="font-size:12px;color:#d4a017;font-weight:700;margin-bottom:6px">🎯 예측 정확도</div>
+    ${[['±0.1kg 이하','+4점'],['±0.3kg 이하','+3점'],['±0.5kg 이하','+2점'],['±1.0kg 이하','+1점'],['±1.1kg 이상','0점']].map(([k,v])=>`
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #2a1e05;font-size:13px">
+        <span style="color:#94a3b8">${k}</span><span style="color:#f59e0b;font-weight:700">${v}</span>
+      </div>`).join('')}
+    <div style="font-size:12px;color:#d4a017;font-weight:700;margin:10px 0 6px">⚖️ 몸무게 변화</div>
+    ${[['감소','+6점','#10b981'],['유지','+2점','#f59e0b'],['증가','-4점','#ef4444']].map(([k,v,c])=>`
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #2a1e05;font-size:13px">
+        <span style="color:#94a3b8">${k}</span><span style="color:${c};font-weight:700">${v}</span>
+      </div>`).join('')}
+    <div style="font-size:12px;color:#d4a017;font-weight:700;margin:10px 0 6px">✅ 기록 보너스</div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px">
+      <span style="color:#94a3b8">기록만 해도</span><span style="color:#10b981;font-weight:700">+5점</span>
+    </div>
+    <div style="margin-top:10px;background:#f59e0b15;border-radius:8px;padding:8px 12px;font-size:12px;color:#f59e0b">하루 최대 15점 · 최악(기록만) 최소 1점</div>
+  </div>`;
+}
+
+// ─── RENDER WEEKLY ───
+function renderWeekly() {
+  const sl = entries.slice(-7);
+  const wAvg = sl.length ? (sl.reduce((s,e)=>s+e.actual,0)/sl.length).toFixed(1) : '-';
+  const wMax = sl.length ? Math.max(...sl.map(e=>e.actual)) : '-';
+  const wMin = sl.length ? Math.min(...sl.map(e=>e.actual)) : '-';
+  const wScore = sl.reduce((s,e)=>s+e.total,0);
+
+  document.getElementById('weekly-summary-card').innerHTML = `
+    <div class="card" style="background:#1a1030;border:1px solid #6d28d940">
+      <div style="font-size:12px;color:#a78bfa;font-weight:700;margin-bottom:12px">📊 이번 주 자동 요약</div>
+      <div class="grid2">
+        ${[['① 이번 주 평균',wAvg+'kg','#8b5cf6'],['② 최고 / 최저',`${wMax} / ${wMin}kg`,'#10b981'],['③ 주간 점수',wScore+'점','#f59e0b'],['④ 기록 일수',sl.length+'일','#3b82f6']].map(([l,v,c])=>`
+          <div class="weekly-summary">
+            <div style="font-size:9px;color:#a78bfa;margin-bottom:3px">${l}</div>
+            <div style="font-size:16px;font-weight:900;color:${c}">${v}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  const wpEl = document.getElementById('weekly-pattern');
+  const wsEl = document.getElementById('weekly-strategy');
+  if(weeklyDone) {
+    if(wpEl) wpEl.disabled = true;
+    if(wsEl) wsEl.disabled = true;
+    document.getElementById('weekly-btn').style.display='none';
+    document.getElementById('weekly-done-card').style.display='block';
+  }
+}
+
+function completeWeekly() {
+  const p = document.getElementById('weekly-pattern').value;
+  const s = document.getElementById('weekly-strategy').value;
+  if(!p||!s) { alert('패턴과 전략을 모두 입력해주세요!'); return; }
+  weeklyDone = true;
+  saveData();
+  document.getElementById('weekly-pattern').disabled = true;
+  document.getElementById('weekly-strategy').disabled = true;
+  document.getElementById('weekly-btn').style.display='none';
+  document.getElementById('weekly-done-card').style.display='block';
+}
+
+// ─── RENDER LEVEL ───
+function renderLevel() {
+  const sc = totalScore();
+  const lvl = getLvl(sc);
+  const nextLvl = LEVELS.find(l=>l.level===lvl.level+1);
+  const progress = nextLvl ? Math.min(100,((sc-lvl.min)/(lvl.max-lvl.min))*100) : 100;
+
+  document.getElementById('level-current-card').innerHTML = `
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
+      <div style="font-size:48px">${lvl.emoji}</div>
+      <div>
+        <div style="font-size:10px;color:${lvl.color};font-weight:700;text-transform:uppercase;letter-spacing:1px">현재 레벨</div>
+        <div style="font-size:22px;font-weight:900;margin-top:2px">Lv.${lvl.level} ${lvl.name}</div>
+        <div style="font-size:12px;color:#94a3b8">${lvl.desc}</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:13px;color:#64748b">누적 점수</span>
+      <span style="font-size:15px;font-weight:800;color:${lvl.color}">${sc}점</span>
+    </div>
+    <div class="pb-bg"><div class="pb-fill" style="width:${progress}%;background:${lvl.color}"></div></div>
+    <div style="font-size:10px;color:#64748b;margin-top:5px;text-align:right">${nextLvl?`Lv.${nextLvl.level} ${nextLvl.name}까지 ${nextLvl.min-sc}점`:'👑 최고 레벨 달성!'}</div>`;
+  document.getElementById('level-current-card').style.background = lvl.color+'10';
+  document.getElementById('level-current-card').style.borderColor = lvl.color+'40';
+
+  document.getElementById('level-score-info').innerHTML = renderScoreInfo();
+
+  document.getElementById('level-roadmap').innerHTML = LEVELS.map(lv=>{
+    const isActive=lv.level===lvl.level, isDone=lv.level<lvl.level;
+    const border = isActive ? `2px solid ${lv.color}` : isDone ? `1px solid ${lv.color}40` : '1px solid #1e2d3d';
+    const bg = isActive ? lv.color+'1a' : isDone ? lv.color+'0a' : '#111827';
+    const nc = isActive ? lv.color : isDone ? lv.color+'cc' : '#475569';
+    const scoreRange = lv.level===12 ? `${lv.min}~∞점` : `${lv.min}~${lv.max}점`;
+    return `<div style="background:${bg};border:${border};border-radius:12px;padding:10px 8px;position:relative">
+      <div style="font-size:9px;font-weight:700;background:${lv.color}22;color:${lv.color};padding:2px 5px;border-radius:10px;display:inline-block;margin-bottom:6px">${scoreRange}</div>
+      <div style="font-size:22px;margin-bottom:5px">${lv.emoji}</div>
+      <div style="font-size:9px;color:${nc};font-weight:700;margin-bottom:1px">Lv.${lv.level} ${isActive?'← NOW':isDone?'✓':''}</div>
+      <div style="font-size:13px;font-weight:900;color:${nc};margin-bottom:3px;word-break:keep-all">${lv.name}</div>
+      <div style="font-size:9px;color:#64748b;line-height:1.4;word-break:keep-all">${lv.desc}</div>
+    </div>`;
+  }).join('') + `
+  <div style="grid-column:1/-1;background:#111827;border:1px solid #1e2d3d;border-radius:12px;padding:14px;margin-top:4px">
+    <div style="font-size:11px;color:#64748b;margin-bottom:10px;font-weight:700">레벨 진행 흐름</div>
+    <div style="display:flex;gap:2px;border-radius:4px;overflow:hidden;margin-bottom:8px">
+      ${LEVELS.map(lv=>{
+        const w = lv.level===12 ? 15 : Math.round((lv.max-lv.min)/12);
+        const opacity = lv.level<=lvl.level ? '1' : '0.25';
+        return `<div style="flex:${lv.level===12?2:1};height:10px;background:${lv.color};opacity:${opacity};position:relative" title="${lv.name}"></div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:#64748b">
+      <span>${LEVELS[0].emoji} ${LEVELS[0].name}</span>
+      <span>${LEVELS[4].emoji} ${LEVELS[4].name}</span>
+      <span>${LEVELS[7].emoji} ${LEVELS[7].name}</span>
+      <span>${LEVELS[10].emoji} ${LEVELS[10].name}</span>
+      <span>${LEVELS[11].emoji} ${LEVELS[11].name}</span>
+    </div>
+  </div>`;
+
+  document.getElementById('level-rewards').innerHTML = REWARDS.map(r=>{
+    const unlocked=sc>=r.score;
+    return `<div class="card" style="display:flex;align-items:center;gap:12px;opacity:${unlocked?1:0.55};${unlocked?`border:1px solid #f59e0b40`:''}">
+      <span style="font-size:30px">${r.emoji}</span>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700">${r.title}</div>
+        <div style="font-size:11px;color:#64748b">${r.score}점 달성 시 해금</div>
+      </div>
+      <div style="padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;background:${unlocked?'#f59e0b20':'#1e2a3a'};color:${unlocked?'#f59e0b':'#64748b'};white-space:nowrap">
+        ${unlocked?'✓ 해금':r.score-sc+'점 필요'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// weekly textarea realtime validation
+document.getElementById('weekly-pattern').addEventListener('input', updateWeeklyBtn);
+document.getElementById('weekly-strategy').addEventListener('input', updateWeeklyBtn);
+function updateWeeklyBtn() {
+  const p=document.getElementById('weekly-pattern').value;
+  const s=document.getElementById('weekly-strategy').value;
+  document.getElementById('weekly-btn').style.background = (p&&s)?'#8b5cf6':'#2d3748';
+}
+
+
+function buildSvgPath(vals, color, areaColor, labels) {
+  const W=320, H=80, pad=14;
+  if(!vals.length) return '<text x="160" y="44" text-anchor="middle" font-size="11" fill="#2d3e52">기록을 시작하면 나타나요</text>';
+  if(vals.length===1) {
+    return `<circle cx="160" cy="40" r="4" fill="${color}"/><text x="160" y="72" text-anchor="middle" font-size="8" fill="#64748b">${labels[0]}</text>`;
+  }
+  const mn=Math.min(...vals), mx=Math.max(...vals), rng=mx-mn||1;
+  const pts=vals.map((v,i)=>{
+    const x=pad+(i/(vals.length-1))*(W-pad*2);
+    const y=H-pad-((v-mn)/rng)*(H-pad*2);
+    return [+x.toFixed(1),+y.toFixed(1)];
+  });
+  let line=`M${pts[0][0]},${pts[0][1]}`;
+  for(let i=1;i<pts.length;i++){
+    const [px,py]=pts[i-1],[cx,cy]=pts[i];
+    const mx2=((px+cx)/2).toFixed(1);
+    line+=` C${mx2},${py} ${mx2},${cy} ${cx},${cy}`;
+  }
+  const area=line+` L${pts[pts.length-1][0]},${H} L${pts[0][0]},${H} Z`;
+  const lbls=labels.map((l,i)=>`<text x="${pts[i][0]}" y="${H-1}" text-anchor="middle" font-size="8" fill="#64748b">${l}</text>`).join('');
+  const dots=pts.map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i===pts.length-1?4:2.5}" fill="${i===pts.length-1?color:color+'aa'}"/>`).join('');
+  return `<path d="${area}" fill="${areaColor}"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/>${dots}${lbls}`;
+}
+
+function switchChartTab(idx) {
+  window._chartTab = idx;
+  const colors = ['#06b6d4','#f59e0b','#8b5cf6'];
+  const ids = ['tab-pred','tab-score','tab-kg'];
+  ids.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    if(i===idx){ el.style.background=colors[i]; el.style.color='#fff'; }
+    else { el.style.background='transparent'; el.style.color='#64748b'; }
+  });
+  renderHomeChart();
+}
+
+function renderHomeChart() {
+  const sl = entries.slice(-7);
+  const svg = document.getElementById('home-chart-svg');
+  const statsEl = document.getElementById('home-chart-stats');
+  const avgEl = document.getElementById('home-avg7');
+  if(!svg) return;
+  const tab = window._chartTab || 0;
+  const labels = sl.map(e=>e.date.replace('5/','').replace('오늘','오늘'));
+
+  if(tab===0) {
+    const vals=sl.map(e=>e.predScore);
+    svg.innerHTML=buildSvgPath(vals,'#06b6d4','#06b6d420',labels);
+    const avg=sl.length?(sl.reduce((s,e)=>s+e.predScore,0)/sl.length).toFixed(1):'-';
+    const mx=sl.length?Math.max(...vals):'-';
+    if(avgEl) avgEl.textContent=sl.length?`평균 ${avg}점`:'';
+    if(statsEl) statsEl.innerHTML=`
+      <div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#10b981">${sl.length?Math.max(...vals)+'점':'-'}</div><div style="font-size:10px;color:#64748b;margin-top:2px">최고</div></div>
+      <div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#ef4444">${sl.length?Math.min(...vals)+'점':'-'}</div><div style="font-size:10px;color:#64748b;margin-top:2px">최저</div></div>
+      <div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#06b6d4">${sl.length?avg+'점':'-'}</div><div style="font-size:10px;color:#64748b;margin-top:2px">평균</div></div>`;
+  } else if(tab===1) {
+    const vals=sl.map(e=>e.total);
+    svg.innerHTML=buildSvgPath(vals,'#f59e0b','#f59e0b20',labels);
+    const total=sl.reduce((s,e)=>s+e.total,0);
+    if(avgEl) avgEl.textContent=sl.length?`7일 합계 ${total}점`:'';
+    if(statsEl) statsEl.innerHTML=`
+      <div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#10b981">${sl.length?Math.max(...vals)+'점':'-'}</div><div style="font-size:10px;color:#64748b;margin-top:2px">최고</div></div>
+      <div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#ef4444">${sl.length?Math.min(...vals)+'점':'-'}</div><div style="font-size:10px;color:#64748b;margin-top:2px">최저</div></div>
+      <div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#f59e0b">${sl.length?total+'점':'-'}</div><div style="font-size:10px;color:#64748b;margin-top:2px">합계</div></div>`;
+  } else {
+    const vals=sl.map(e=>e.actual);
+    svg.innerHTML=buildSvgPath(vals,'#8b5cf6','#8b5cf620',labels);
+    const a7=sl.length?(sl.reduce((s,e)=>s+e.actual,0)/sl.length).toFixed(1):'-';
+    if(avgEl) avgEl.textContent=sl.length?`7일 평균 ${a7}kg`:'';
+    if(statsEl) statsEl.innerHTML=`
+      <div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#10b981">${sl.length?Math.min(...vals).toFixed(1)+'kg':'-'}</div><div style="font-size:10px;color:#64748b;margin-top:2px">최저</div></div>
+      <div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#ef4444">${sl.length?Math.max(...vals).toFixed(1)+'kg':'-'}</div><div style="font-size:10px;color:#64748b;margin-top:2px">최고</div></div>
+      <div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#8b5cf6">${a7!=='-'?a7+'kg':'-'}</div><div style="font-size:10px;color:#64748b;margin-top:2px">평균</div></div>`;
+  }
+}
+
+
+async function loadLib(url) {
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src=url; s.onload=res; s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function scanScaleImage(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const status = document.getElementById('scan-status');
+  const scanBtn = document.getElementById('scan-btn');
+  const preview = document.getElementById('scan-preview');
+  if(status) { status.style.display='block'; status.textContent='📷 사진 분석 중...'; status.style.color='#94a3b8'; }
+  if(scanBtn) scanBtn.style.opacity='0.5';
+  if(preview) preview.innerHTML='';
+
+  try {
+    // Load libraries
+    if(typeof exifr === 'undefined') await loadLib('https://cdn.jsdelivr.net/npm/exifr@7/dist/lite.umd.js');
+    if(typeof Tesseract === 'undefined') await loadLib('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+
+    // 1. Read EXIF date
+    let photoDate = null;
+    let dateStr = '날짜 정보 없음';
+    let isToday = false;
+    let dateColor = '#64748b';
+    let dateIcon = '📅';
+    try {
+      const exif = await exifr.parse(file, ['DateTimeOriginal','DateTime','CreateDate']);
+      const raw = exif?.DateTimeOriginal || exif?.DateTime || exif?.CreateDate;
+      if(raw) {
+        photoDate = raw instanceof Date ? raw : new Date(raw);
+        const now = new Date();
+        isToday = photoDate.getFullYear()===now.getFullYear() &&
+                  photoDate.getMonth()===now.getMonth() &&
+                  photoDate.getDate()===now.getDate();
+        const yy = photoDate.getFullYear();
+        const mm = String(photoDate.getMonth()+1).padStart(2,'0');
+        const dd = String(photoDate.getDate()).padStart(2,'0');
+        const hh = String(photoDate.getHours()).padStart(2,'0');
+        const mi = String(photoDate.getMinutes()).padStart(2,'0');
+        dateStr = `${yy}.${mm}.${dd} ${hh}:${mi}`;
+        dateColor = isToday ? '#10b981' : '#f59e0b';
+        dateIcon = isToday ? '✅' : '⚠️';
+      } else {
+        // fallback to file lastModified
+        const mod = new Date(file.lastModified);
+        const now = new Date();
+        isToday = mod.getFullYear()===now.getFullYear() && mod.getMonth()===now.getMonth() && mod.getDate()===now.getDate();
+        const yy=mod.getFullYear(), mm=String(mod.getMonth()+1).padStart(2,'0'), dd=String(mod.getDate()).padStart(2,'0');
+        const hh=String(mod.getHours()).padStart(2,'0'), mi=String(mod.getMinutes()).padStart(2,'0');
+        dateStr = `${yy}.${mm}.${dd} ${hh}:${mi} (수정일 기준)`;
+        dateColor = '#64748b'; dateIcon = '📅';
+      }
+    } catch(e) { /* exif read failed, use file date */ }
+
+    // 2. OCR weight
+    if(status) status.textContent='🔍 몸무게 숫자 읽는 중...';
+    const url = URL.createObjectURL(file);
+    const result = await Tesseract.recognize(url, 'eng', {
+      tessedit_char_whitelist: '0123456789.',
+      logger: m => { if(status && m.status==='recognizing text') status.textContent=`숫자 분석 중 ${Math.round(m.progress*100)}%`; }
+    });
+    URL.revokeObjectURL(url);
+    const text = result.data.text.trim();
+    const matches = text.match(/\d+\.\d+|\d+/g);
+    const valid = matches ? matches.map(Number).filter(n=>n>20&&n<300) : [];
+    const weightVal = valid.length ? valid[0] : null;
+
+    // 3. Show preview card
+    if(preview) {
+      const notTodayWarn = (!isToday && photoDate) ? `<div style="background:#f59e0b20;border:1px solid #f59e0b40;border-radius:8px;padding:8px 12px;font-size:12px;color:#fbbf24;margin-top:10px">⚠️ 오늘 찍은 사진이 아닐 수 있어요. 오늘 날짜인지 확인해줘.</div>` : '';
+      preview.innerHTML = `
+        <div style="background:#111827;border:1px solid #1e2d3d;border-radius:12px;padding:14px;margin-bottom:10px">
+          <div style="font-size:10px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">📸 사진 분석 결과</div>
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+            <div style="flex:1;background:#1e2a3a;border-radius:10px;padding:10px 12px">
+              <div style="font-size:10px;color:#64748b;margin-bottom:4px">촬영 날짜/시각</div>
+              <div style="font-size:13px;font-weight:700;color:${dateColor}">${dateIcon} ${dateStr}</div>
+              ${isToday ? '<div style="font-size:10px;color:#10b981;margin-top:2px">오늘 사진 확인</div>' : ''}
+            </div>
+            <div style="background:#1e2a3a;border-radius:10px;padding:10px 14px;text-align:center;flex-shrink:0">
+              <div style="font-size:10px;color:#64748b;margin-bottom:4px">인식된 몸무게</div>
+              <div style="font-size:22px;font-weight:900;color:${weightVal?'#10b981':'#64748b'}">${weightVal ? weightVal.toFixed(1)+'kg' : '—'}</div>
+            </div>
+          </div>
+          ${notTodayWarn}
+          ${weightVal ? `<button class="btn btn-green" onclick="applyScannedWeight(${weightVal.toFixed(1)})" style="margin-top:4px">✅ ${weightVal.toFixed(1)}kg 적용하기</button>` : '<div style="font-size:12px;color:#f59e0b;text-align:center;padding:6px">숫자를 읽지 못했어요. 아래에서 직접 입력해줘</div>'}
+        </div>`;
+    }
+    if(status) status.style.display='none';
+  } catch(e) {
+    if(status) { status.textContent='분석 실패. 직접 입력해줘'; status.style.color='#ef4444'; }
+    console.error(e);
+  }
+  if(scanBtn) scanBtn.style.opacity='1';
+}
+
+function applyScannedWeight(val) {
+  const inp = document.getElementById('actual-input');
+  if(inp) { inp.value = val.toFixed(1); actualVal = inp.value; }
+  const preview = document.getElementById('scan-preview');
+  if(preview) preview.innerHTML='<div style="background:#10b98120;border-radius:8px;padding:8px 12px;font-size:13px;color:#10b981;margin-bottom:10px;text-align:center">✅ '+val.toFixed(1)+'kg 입력 완료</div>';
+}
+
+function toggleScoreInfo() {
+  const body = document.getElementById('score-info-body');
+  const arrow = document.getElementById('score-info-arrow');
+  if(!body) return;
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  if(arrow) { arrow.textContent = open ? '∨' : '∧'; }
+}
+
+function showGoalScreen() {
+  showScreen('goal');
+  document.getElementById('nav-home').classList.add('active');
+  // populate inputs
+  if(goalKg) document.getElementById('goal-kg-input').value = goalKg;
+  if(goalDate) document.getElementById('goal-date-input').value = goalDate;
+  selectGoalType(goalGraphType);
+  updateGoalPreview();
+  // date change listener
+  document.getElementById('goal-date-input').addEventListener('input', updateGoalDday);
+  document.getElementById('goal-kg-input').addEventListener('input', updateGoalPreview);
+}
+
+function adjustGoalKg(delta) {
+  const el = document.getElementById('goal-kg-input');
+  const v = parseFloat(el.value || goalKg || 60);
+  el.value = (v + delta).toFixed(1);
+  updateGoalPreview();
+}
+
+function selectGoalType(type) {
+  goalGraphType = type;
+  const dateEl = document.getElementById('goal-type-date');
+  const weightEl = document.getElementById('goal-type-weight');
+  const radioDate = document.getElementById('radio-date');
+  const radioWeight = document.getElementById('radio-weight');
+  if(type === 'date') {
+    dateEl.style.border = '2px solid #10b981'; dateEl.style.opacity = '1';
+    weightEl.style.border = '1px solid #2d3e52'; weightEl.style.opacity = '0.7';
+    radioDate.style.background = '#10b981'; radioDate.innerHTML = '<div style="width:7px;height:7px;border-radius:50%;background:white"></div>';
+    radioWeight.style.background = 'transparent'; radioWeight.style.border = '2px solid #475569'; radioWeight.innerHTML = '';
+  } else {
+    weightEl.style.border = '2px solid #10b981'; weightEl.style.opacity = '1';
+    dateEl.style.border = '1px solid #2d3e52'; dateEl.style.opacity = '0.7';
+    radioWeight.style.background = '#10b981'; radioWeight.style.border = 'none'; radioWeight.innerHTML = '<div style="width:7px;height:7px;border-radius:50%;background:white"></div>';
+    radioDate.style.background = 'transparent'; radioDate.style.border = '2px solid #475569'; radioDate.innerHTML = '';
+  }
+  updateGoalPreview();
+}
+
+function updateGoalDday() {
+  const dateVal = document.getElementById('goal-date-input').value;
+  const el = document.getElementById('goal-dday');
+  if(!dateVal || !el) return;
+  const diff = Math.ceil((new Date(dateVal) - new Date()) / 86400000);
+  el.textContent = diff > 0 ? `오늘부터 D-${diff}` : 'D-day!';
+  updateGoalPreview();
+}
+
+function updateGoalPreview() {
+  const kgEl = document.getElementById('goal-kg-input');
+  const dateEl = document.getElementById('goal-date-input');
+  const preview = document.getElementById('goal-preview');
+  const kg = kgEl?.value;
+  const date = dateEl?.value;
+  if(!kg || !date) { if(preview) preview.style.display='none'; return; }
+  if(preview) preview.style.display='block';
+  const shortDate = date.slice(2).replace(/-/g, '.').replace(/^(\d{2})\.(\d{2})\.(\d{2})$/, '$1.$2.$3');
+  const label = document.getElementById('preview-label');
+  const bar = document.getElementById('preview-bar');
+  const dday = document.getElementById('preview-dday');
+  const diff = Math.ceil((new Date(date) - new Date()) / 86400000);
+  if(label) label.innerHTML = `${kg}kg <span style="color:#64748b;font-size:11px;font-weight:500">[${shortDate}]</span>`;
+  if(dday) dday.textContent = diff > 0 ? `D-${diff}` : 'D-day!';
+  let pct = 0;
+  if(goalGraphType === 'date') {
+    const savedStart = localStorage.getItem('자객_goalStartDate');
+    const start = savedStart ? new Date(savedStart) : new Date();
+    const total = new Date(date) - start;
+    const elapsed = new Date() - start;
+    pct = total > 0 ? Math.min(100, Math.round((elapsed/total)*100)) : 0;
+  } else {
+    const curKg = entries.length ? entries[entries.length-1].actual : parseFloat(startKg||kg);
+    const sKg = parseFloat(startKg || curKg);
+    const tKg = parseFloat(kg);
+    const total = sKg - tKg;
+    const done = sKg - curKg;
+    pct = total > 0 ? Math.min(100, Math.round((done/total)*100)) : 0;
+  }
+  if(bar) bar.style.width = pct + '%';
+}
+
+function saveGoal() {
+  const kg = document.getElementById('goal-kg-input').value;
+  const date = document.getElementById('goal-date-input').value;
+  if(!kg || !date) { alert('목표 몸무게와 날짜를 모두 입력해줘!'); return; }
+  goalKg = kg; goalDate = date;
+  if(!localStorage.getItem('자객_goalStartDate')) {
+    localStorage.setItem('자객_goalStartDate', new Date().toISOString().slice(0,10));
+    startKg = entries.length ? String(entries[entries.length-1].actual) : '';
+  }
+  saveData();
+  showScreen('home');
+  renderHome();
+}
+
+function renderGoalCard() {
+  const row = document.getElementById('home-goal-row');
+  if(!row) return;
+  // Name card
+  let nameHtml = '';
+  if(userName) {
+    nameHtml = `<div onclick="toggleNameEdit()" style="background:#111827;border:1px solid #1e2d3d;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0">
+      <div style="width:36px;height:36px;border-radius:50%;background:#7c3aed25;border:1px solid #7c3aed50;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">👤</div>
+      <div>
+        <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px">플레이어</div>
+        <div style="font-size:15px;font-weight:900;color:#8b5cf6;white-space:nowrap">${userName}님 👋</div>
+      </div>
+    </div>`;
+  }
+  // Goal card
+  let goalHtml = '';
+  if(goalKg && goalDate) {
+    const shortDate = goalDate.slice(2).replace(/-/g, '.');
+    const diff = Math.ceil((new Date(goalDate) - new Date()) / 86400000);
+    let pct = 0;
+    if(goalGraphType === 'date') {
+      const savedStart = localStorage.getItem('자객_goalStartDate');
+      const start = savedStart ? new Date(savedStart) : new Date();
+      const total = new Date(goalDate) - start;
+      const elapsed = new Date() - start;
+      pct = total > 0 ? Math.min(100, Math.round((elapsed/total)*100)) : 0;
+    } else {
+      const curKg = entries.length ? entries[entries.length-1].actual : parseFloat(goalKg);
+      const sKg = parseFloat(startKg || curKg);
+      const tKg = parseFloat(goalKg);
+      const total = sKg - tKg;
+      const done = sKg - curKg;
+      pct = total > 0 ? Math.min(100, Math.round((done/total)*100)) : 0;
+    }
+    goalHtml = `<div onclick="showGoalScreen()" style="background:#0a1f13;border:1px solid #10b98135;border-radius:16px;padding:12px 14px;flex:1;min-width:0;cursor:pointer">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:9px;color:#10b981;font-weight:700;text-transform:uppercase;letter-spacing:1px">목표</span>
+        <span style="font-size:12px;font-weight:800;color:#f1f5f9;white-space:nowrap">${goalKg}kg <span style="color:#64748b;font-size:10px;font-weight:500">[${shortDate}]</span></span>
+      </div>
+      <div style="background:#1e2a3a;border-radius:4px;height:4px;overflow:hidden;margin-bottom:5px">
+        <div style="background:#10b981;height:100%;width:${pct}%;border-radius:4px"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <span style="font-size:12px;font-weight:900;color:#10b981">${diff > 0 ? 'D-'+diff : 'D-day!'}</span>
+      </div>
+    </div>`;
+  } else {
+    goalHtml = `<div onclick="showGoalScreen()" style="background:#111827;border:1px dashed #2d3e52;border-radius:16px;padding:12px 14px;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer">
+      <span style="font-size:13px;color:#475569">🎯</span>
+      <span style="font-size:13px;color:#475569;font-weight:600">목표 설정하기</span>
+    </div>`;
+  }
+  row.innerHTML = (userName ? nameHtml : '') + goalHtml;
+  row.style.marginBottom = '12px';
+}
+
+function resetToday() {
+  if(!confirm('오늘 기록을 초기화할까요? (테스트용)')) return;
+  dayState = 'INIT';
+  todayResult = null;
+  predictVal = '';
+  actualVal = '';
+  recordStep = 'predict';
+  if(entries.length && entries[entries.length-1].date === '오늘') entries.pop();
+  localStorage.setItem('자객_dayState', 'INIT');
+  localStorage.setItem('자객_todayResult', 'null');
+  localStorage.setItem('자객_predictVal', '');
+  localStorage.setItem('자객_actualVal', '');
+  localStorage.setItem('자객_entries', JSON.stringify(entries));
+  localStorage.removeItem('자객_lastDate');
+  renderHome();
+}
+
+// Init
+loadData();
+setInterval(()=>{ if(document.getElementById('home-today-card') && currentScreen==='home') renderHome(); }, 1000);
+window._chartTab = 0;
+renderHome();
+// name handled by renderGoalCard
+</script>
+</body>
+</html>
