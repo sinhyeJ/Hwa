@@ -5,6 +5,11 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%232d1659' stroke='%238b5cf6' stroke-width='2.5'/%3E%3Cellipse cx='16' cy='15' rx='5' ry='9' fill='%23f0abfc' transform='rotate(-50 16 20)'/%3E%3Cellipse cx='16' cy='14' rx='5' ry='8' fill='%23db2777' transform='rotate(-18 16 20)'/%3E%3Cellipse cx='16' cy='14' rx='5' ry='8' fill='%23f0abfc' transform='rotate(18 16 20)'/%3E%3Cellipse cx='16' cy='15' rx='5' ry='9' fill='%23e879f9' transform='rotate(50 16 20)'/%3E%3Ccircle cx='16' cy='20' r='4' fill='white'/%3E%3Ccircle cx='16' cy='20' r='2' fill='%236d28d9'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>자객:花 — 게임형 습관 트래킹</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="자객:花 — 나를 알면 알수록, 꽃이 핀다">
+<meta property="og:description" content="게임처럼 즐기는 습관 트래킹. 예측하고, 기록하고, 레벨업하세요!">
+<meta property="og:image" content="https://sinhyej.github.io/Hwa/og_card.jpg">
+<meta property="og:url" content="https://sinhyej.github.io/Hwa/%EC%9E%90%EA%B0%9D%E8%8A%B1.html">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background: #080d1a; color: #f1f5f9; font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; min-height: 100vh; }
@@ -943,7 +948,10 @@ function renderRecord() {
         <div style="font-size:18px;font-weight:800;color:#10b981;margin-bottom:2px">오늘 플레이 완료!</div>
         <div style="font-size:10.5px;color:#6ee7b7;font-weight:400;margin-bottom:12px">${_pd}</div>
         <div style="font-size:13px;color:#94a3b8;margin-bottom:14px">누적 ${sc}점 · Lv.${lvl.level} ${lvl.name} · 연속 ${streak()}일</div>
-        <button class="btn btn-green" onclick="showScreen('home')">홈으로 →</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-green" style="flex:1" onclick="showScreen('home')">홈으로 →</button>
+          <button class="btn" style="flex:1;background:#8b5cf6" onclick="shareToday()"><svg style="width:15px;height:15px;vertical-align:-2px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.7" y1="10.6" x2="15.3" y2="6.4"/><line x1="8.7" y1="13.4" x2="15.3" y2="17.6"/></svg>공유하기</button>
+        </div>
       </div>`;
 
   } else if(recordStep==='predicted_done') {
@@ -1030,6 +1038,27 @@ function goScoreStep() {
   recordStep = 'score';
   renderRecord();
   renderHome();
+}
+
+// ─── SHARE ───
+function shareToday() {
+  const e = entries[entries.length-1] || {};
+  const sc = totalScore(), lvl = getLvl(sc);
+  let goalLine = '';
+  if(goalKg && goalDate) {
+    const dd = Math.ceil((new Date(goalDate) - new Date()) / 86400000);
+    const dday = dd > 0 ? 'D-'+dd : dd === 0 ? 'D-Day' : 'D+'+Math.abs(dd);
+    goalLine = '🔥 [나의 목표 : ' + goalKg + 'kg, ' + dday + ']\n';
+  }
+  const text = goalLine + '✅ 오늘의 플레이 완료!\n🏆 오늘 ' + (e.total>0?'+':'') + (e.total||0) + '점 획득 · Lv.' + lvl.level + ' ' + lvl.name;
+  const url = 'https://sinhyej.github.io/Hwa/자객花.html';
+  if(navigator.share) {
+    navigator.share({ text: text, url: url }).catch(()=>{});
+  } else if(navigator.clipboard) {
+    navigator.clipboard.writeText(text + '\n' + url).then(()=>alert('📋 공유 문구가 복사되었어요!\n친구에게 붙여넣기 해보세요 😊'));
+  } else {
+    prompt('아래 문구를 복사해서 공유해 주세요:', text + '\n' + url);
+  }
 }
 
 // ─── RENDER HISTORY ───
