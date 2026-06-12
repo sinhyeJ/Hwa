@@ -1044,11 +1044,13 @@ function goScoreStep() {
 function shareToday() {
   const e = entries[entries.length-1] || {};
   const sc = totalScore(), lvl = getLvl(sc);
-  let goalLine = '';
+  let goalLine = '🔥 [나의 목표 : 미설정]\n';
   if(goalKg && goalDate) {
     const dd = Math.ceil((new Date(goalDate) - new Date()) / 86400000);
     const dday = dd > 0 ? 'D-'+dd : dd === 0 ? 'D-Day' : 'D+'+Math.abs(dd);
     goalLine = '🔥 [나의 목표 : ' + goalKg + 'kg, ' + dday + ']\n';
+  } else if(goalKg) {
+    goalLine = '🔥 [나의 목표 : ' + goalKg + 'kg]\n';
   }
   const text = goalLine + '✅ 오늘의 플레이 완료!\n🏆 오늘 ' + (e.total>0?'+':'') + (e.total||0) + '점 획득 · Lv.' + lvl.level + ' ' + lvl.name;
   const url = 'https://sinhyej.github.io/Hwa/자객花.html';
