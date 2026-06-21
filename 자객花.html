@@ -10,6 +10,7 @@
 <meta property="og:description" content="게임처럼 즐기는 습관 트래킹. 예측하고, 기록하고, 레벨업하세요!">
 <meta property="og:image" content="https://jagak-hwa.web.app/og_card.jpg">
 <meta property="og:url" content="https://jagak-hwa.web.app/">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background: #080d1a; color: #f1f5f9; font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; min-height: 100vh; }
@@ -673,6 +674,51 @@ function getComment(d) {
   if(d<=0.3) return '조금 올랐지만 최근 평균은 안정적';
   return '최근 상승 흐름, 식단 점검 추천 💡';
 }
+
+// ─── 자객 한마디 (예측 오차 기반) ───
+const MMENT_HARSH = [ // 예측 > 실제 (나를 무겁게 봄)
+  '“오늘은 나를 좀 박하게 평가했네요” 🤔',
+  '“생각보다 잘 버텼어요. 나한테 너무 엄격했나봐요” 😌',
+  '“예상보다 가벼웠어요. 자신감 가져도 돼요” 😎',
+  '“마음속 저울이 좀 무거웠나봐요” ⚖️',
+  '“다행히 걱정만큼은 아니었네요” 😮‍💨',
+  '“나를 더 믿어줘도 될 것 같아요” 💪',
+  '“오늘의 나, 생각보다 선방했어요” 👏'
+];
+const MMENT_HOPE = [ // 예측 < 실제 (나를 가볍게 봄)
+  '“희망회로가 살짝 돌았습니다” 😅',
+  '“마음은 이미 다이어트 성공이었네요 ㅎㅎ” 🌈',
+  '“살짝 후하게 봤어요. 그래도 그 마음 응원해요” 🌱',
+  '“기대가 조금 앞서갔나봐요” 😬',
+  '“긍정 회로 가동 중이셨군요” 🔋',
+  '“바람이 살짝 섞였네요. 내일은 더 정확하게” 🎯',
+  '“마음의 눈금이 조금 가벼웠어요” 🎈'
+];
+const MMENT_ACCURATE = [ // 오차 0.2kg 이내 (정확)
+  '“오늘의 자기객관화, 성공!” 🎯',
+  '“몸을 정확히 읽고 있어요. 소름” 😳',
+  '“거의 맞혔어요. 나를 잘 아는 사람이네요” ✨',
+  '“예측과 실제가 거의 한 몸이네요” 🤝',
+  '“자기 감각이 점점 예리해지고 있어요” 🔍',
+  '“이 정도면 내 몸 전문가 인정” 👏',
+  '“오늘은 나를 정확히 봤어요. 멋져요” 🌟'
+];
+function getPredMment(predicted, actual) {
+  if(predicted === null || predicted === undefined || actual === null || actual === undefined) return '';
+  const gap = Math.round((predicted - actual) * 10) / 10;
+  let pool;
+  if(Math.abs(gap) <= 0.2) pool = MMENT_ACCURATE;
+  else if(gap > 0) pool = MMENT_HARSH;
+  else pool = MMENT_HOPE;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ─── 폭죽 (점수 화면 진입 시) ───
+function popConfetti() {
+  if(typeof confetti !== 'function') return;
+  confetti({ particleCount:90, spread:65, startVelocity:38, origin:{ y:0.42 }, colors:['#10b981','#8b5cf6','#f59e0b','#f0abfc','#fbbf24'] });
+  setTimeout(()=>confetti({ particleCount:50, spread:90, startVelocity:28, origin:{ y:0.4 } }), 180);
+}
 function calcPred(err) {
   if(err===null) return 0;
   if(err<=0.1) return 4;
@@ -903,18 +949,22 @@ function renderRecord() {
       const _wd = ['일','월','화','수','목','금','토'][new Date('20'+_te.date.replace(/\//g,'-')).getDay()];
       _pd = _te.date.replace(/\//g,'.') + ' (' + _wd + ')';
     }
+    const _mm = r.predMment || (r.predError!==null ? getPredMment(r.predicted, r.actual) : '');
     content.innerHTML = `
       <div class="card" style="border:1px solid #f59e0b30;background:#1a1505">
         <div style="font-size:10px;color:#f59e0b;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">STEP 4 · 점수 획득</div>
 
-        <div class="score-row">
-          <span style="font-size:13px;color:#d4a017">
-            🎯 예측 정확도
-            ${r.predError!==null
-              ? `<span style="display:block;font-size:11px;color:#94a3b8;margin-top:3px">${r.predicted!==null?r.predicted+'kg':'-'} → ${r.actual}kg = 오차 ${r.predError}kg</span>`
-              : `<span style="display:block;font-size:11px;color:#64748b;margin-top:3px">예측 없음</span>`}
-          </span>
-          <span style="font-size:18px;font-weight:900;color:${r.predScore>0?'#10b981':'#64748b'};flex-shrink:0;margin-left:8px">${r.predScore>0?'+':''}${r.predScore}점</span>
+        <div style="background:#f59e0b15;border-radius:13px;padding:4px 15px 14px">
+          <div class="score-row" style="border-bottom:1px solid #f59e0b25">
+            <span style="font-size:13px;color:#d4a017">
+              🎯 예측 정확도
+              ${r.predError!==null
+                ? `<span style="display:block;font-size:11px;color:#94a3b8;margin-top:3px">${r.predicted!==null?r.predicted+'kg':'-'} → ${r.actual}kg = 오차 ${r.predError}kg</span>`
+                : `<span style="display:block;font-size:11px;color:#64748b;margin-top:3px">예측 없음</span>`}
+            </span>
+            <span style="font-size:18px;font-weight:900;color:${r.predScore>0?'#10b981':'#64748b'};flex-shrink:0;margin-left:8px">${r.predScore>0?'+':''}${r.predScore}점</span>
+          </div>
+          ${_mm ? `<div style="margin-top:12px;line-height:1.55"><span style="font-size:13.5px;font-weight:400;color:#f0d9a0">${_mm}</span></div>` : ''}
         </div>
         <div class="score-row">
           <span style="font-size:13px;color:#d4a017">
@@ -944,8 +994,8 @@ function renderRecord() {
       </div>
 
       <div class="card" style="border:1px solid #10b98140;background:#0d1f17;text-align:center">
-        <div style="font-size:40px;margin-bottom:8px">🎉</div>
-        <div style="font-size:18px;font-weight:800;color:#10b981;margin-bottom:2px">오늘 플레이 완료!</div>
+        <div style="font-size:40px;margin-bottom:8px;cursor:pointer" onclick="popConfetti()">🎉</div>
+        <div style="font-size:23px;font-weight:400;color:#10b981;margin-bottom:2px">오늘 플레이 완료!</div>
         <div style="font-size:10.5px;color:#6ee7b7;font-weight:400;margin-bottom:12px">${_pd}</div>
         <div style="font-size:13px;color:#94a3b8;margin-bottom:14px">누적 ${sc}점 · Lv.${lvl.level} ${lvl.name} · 연속 ${streak()}일</div>
         <div style="display:flex;gap:8px">
@@ -1020,7 +1070,8 @@ function submitRecord() {
   const logScore = 5;
   const total = predScore+changeScore+logScore;
   const comment = getComment(diff);
-  todayResult = { predicted, actual, diff, predError, predScore, changeScore, logScore, total, comment };
+  const predMment = getPredMment(predicted, actual);
+  todayResult = { predicted, actual, diff, predError, predScore, changeScore, logScore, total, comment, predMment };
   recordStep = 'result';
   renderRecord();
 }
@@ -1038,6 +1089,7 @@ function goScoreStep() {
   recordStep = 'score';
   renderRecord();
   renderHome();
+  setTimeout(popConfetti, 350);
 }
 
 // ─── SHARE ───
